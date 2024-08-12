@@ -15,4 +15,9 @@ The `characters` and `monsters` routers fetches data from the above link,
 and stores them in a sqlite3 database (sql_app.db).
 
 
-Frontend runs on React.js , using axios to make HTTP requests to the FastAPI backend
+Frontend runs on React.js , using axios to make HTTP requests to the FastAPI backend.
+To run the frontend (while the backend is running), do:
+```bash
+cd react-frontend
+npm start
+```
