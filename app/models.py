@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .database import Base
 
-class Character(Base):
+class CharacterSQL(Base):
     __tablename__ = "characters"
     
     id = Column(UUID(as_uuid=True), primary_key=True, index=True)
@@ -22,7 +22,7 @@ class Character(Base):
     stats = Column(JSON)
 
 
-class Monster(Base):
+class MonsterSQL(Base):
     __tablename__ = "monsters"
     
     monsterId = Column(UUID(as_uuid=True), primary_key=True, index=True)
