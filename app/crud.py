@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
-from .models import Character, Monster
+from .models import CharacterSQL, MonsterSQL
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 
 def create_character(db: Session, character: dict):
     try:
-        db_character = Character(
+        db_character = CharacterSQL(
             id=UUID(character["id"]),
             name=character["name"],
             japaneseName=character.get("japaneseName"),
@@ -30,7 +30,7 @@ def create_character(db: Session, character: dict):
 
 def create_monster(db: Session, monster: dict):
     try:
-        db_monster = Monster(
+        db_monster = MonsterSQL(
             monsterId=UUID(monster["monsterId"]),
             name=monster["name"],
             japaneseName=monster["japaneseName"],
@@ -53,7 +53,14 @@ def create_monster(db: Session, monster: dict):
         return None
 
 def get_characters(db: Session):
-    return db.query(Character).all()
+    return db.query(CharacterSQL).all()
 
 def get_monsters(db: Session):
-    return db.query(Monster).all()
+    return db.query(MonsterSQL).all()
+
+
+def get_characters_by_name(db: Session, name: str):
+    return db.query(CharacterSQL).filter(CharacterSQL.name.ilike(f'%{name}%')).all()
+
+def get_monsters_by_name(db: Session, name: str):
+    return db.query(MonsterSQL).filter(MonsterSQL.name.ilike(f'%{name}%')).all()
