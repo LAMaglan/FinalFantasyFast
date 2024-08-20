@@ -33,17 +33,6 @@ class Character(BaseModel):
     class Config:
         orm_mode = True
 
-@router.get("/get-characters")
-async def fetch_and_store_characters(db: Session = Depends(get_db)):
-    async with httpx.AsyncClient() as client:
-        response = await client.get('https://www.moogleapi.com/api/v1/characters')
-        response.raise_for_status()
-        characters = response.json()
-        for character in characters:
-            if crud.create_character(db, character) is None:
-                return {"error": "Cannot insert or update character."}
-        return characters
-
 @router.get("/stored-characters")
 def read_characters(db: Session = Depends(get_db)):
     return crud.get_characters(db)

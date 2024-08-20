@@ -26,17 +26,6 @@ class Monster(BaseModel):
     class Config:
         orm_mode = True
 
-@router.get("/get-monsters")
-async def fetch_and_store_monsters(db: Session = Depends(get_db)):
-    async with httpx.AsyncClient() as client:
-        response = await client.get('https://www.moogleapi.com/api/v1/monsters')
-        response.raise_for_status()
-        monsters = response.json()
-        for monster in monsters:
-            if crud.create_monster(db, monster) is None:
-                return {"error": "Cannot insert or update monster."}
-        return monsters
-
 @router.get("/stored-monsters")
 def read_monsters(db: Session = Depends(get_db)):
     return crud.get_monsters(db)
