@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from app.routers import characters, monsters
-from app.database import engine, Base
+from routers import characters, monsters
+from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
