@@ -19,8 +19,8 @@ docker-compose up --build
 The backend (FastAPI) runs with poetry:
 
 ```
-poetry shell
 cd backend
+poetry shell
 python intialize_db.py
 uvicorn main:app --reload
 ```
