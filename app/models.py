@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, JSON, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from .database import Base
+from database import Base
 
 class CharacterSQL(Base):
     __tablename__ = "characters"

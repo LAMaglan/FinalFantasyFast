@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import httpx
-from ..database import get_db
-from .. import crud
+from database import get_db
+import crud
 from typing import Optional, List
 from pydantic import BaseModel, Field
 from uuid import UUID
