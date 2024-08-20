@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from .models import CharacterSQL, MonsterSQL
+from models import CharacterSQL, MonsterSQL
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 
