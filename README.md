@@ -10,7 +10,7 @@ docker-compose up
 Note: if you for whatever reason make changes to the dockerfiles or docker-compose.yml files, the
 rebuild with
 
-```
+```bash
 docker-compose up --build
 ```
 
@@ -18,7 +18,7 @@ docker-compose up --build
 
 The backend (FastAPI) runs with poetry:
 
-```
+```bash
 cd backend
 poetry shell
 python intialize_db.py
@@ -49,6 +49,3 @@ and stores them in a sqlite3 database (sql_app.db).
 
 The frontend is accessible through
 http://localhost:3000
-
-
-The frontend is accessible through
