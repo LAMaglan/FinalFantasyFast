@@ -20,7 +20,8 @@ The backend (FastAPI) runs with poetry:
 
 ```
 poetry shell
-cd app
+cd backend
+python intialize_db.py
 uvicorn main:app --reload
 ```
 
