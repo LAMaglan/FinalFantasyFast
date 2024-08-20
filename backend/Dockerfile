@@ -5,7 +5,7 @@ FROM python:3.10-slim
 RUN pip install poetry
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /backend
 
 # Copy only the pyproject.toml and poetry.lock files to cache dependencies
 COPY pyproject.toml poetry.lock ./
