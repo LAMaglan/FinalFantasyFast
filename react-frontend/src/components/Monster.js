@@ -19,6 +19,9 @@ const Monster = () => {
                     console.error("There was an error fetching the monsters!", error);
                     setLoading(false);
                 });
+        } else {
+            // Reset the displayed monsters when the input is empty
+            setMonsters([]);  
         }
     }, [monsterName]);
 
