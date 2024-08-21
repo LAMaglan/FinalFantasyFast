@@ -19,12 +19,15 @@ const Character = () => {
                     console.error("There was an error fetching the characters!", error);
                     setLoading(false);
                 });
+        } else {
+            // Reset the displayed characters when the input is empty
+            setCharacters([]);  
         }
     }, [characterName]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
-    };
+    }
 
     return (
         <div>
