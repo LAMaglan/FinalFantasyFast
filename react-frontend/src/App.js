@@ -1,18 +1,32 @@
 import React from 'react';
+import { Tabs, Tab, Box } from '@mui/material';
 import Character from './components/Character';
 import Monster from './components/Monster';
+import './App.css';
 
-function App() {
+const App = () => {
+    const [value, setValue] = React.useState(0);
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Final Fantasy Characters and Monsters</h1>
+                <h1>FinalFantasyFast</h1>
             </header>
             <main>
-                <h2>Characters</h2>
-                <Character />
-                <h2>Monsters</h2>
-                <Monster />
+                <Box sx={{ width: '100%' }}>
+                    <Tabs value={value} onChange={handleChange} centered>
+                        <Tab label="Characters" />
+                        <Tab label="Monsters" />
+                    </Tabs>
+                    <div className="tab-content">
+                        {value === 0 && <Character />}
+                        {value === 1 && <Monster />}
+                    </div>
+                </Box>
             </main>
         </div>
     );
