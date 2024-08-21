@@ -14,7 +14,7 @@ const App = () => {
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Final Fantasy Characters and Monsters</h1>
+                <h1>FinalFantasyFast</h1>
             </header>
             <main>
                 <Box sx={{ width: '100%' }}>
