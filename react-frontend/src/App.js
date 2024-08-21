@@ -22,8 +22,10 @@ const App = () => {
                         <Tab label="Characters" />
                         <Tab label="Monsters" />
                     </Tabs>
-                    {value === 0 && <Character />}
-                    {value === 1 && <Monster />}
+                    <div className="tab-content">
+                        {value === 0 && <Character />}
+                        {value === 1 && <Monster />}
+                    </div>
                 </Box>
             </main>
         </div>
