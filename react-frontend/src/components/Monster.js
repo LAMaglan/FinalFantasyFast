@@ -10,6 +10,9 @@ const Monster = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // Reset monsters immediately when filters change
+        setMonsters([]);
+
         if (monsterName || selectedGame) {
             setLoading(true);
             axios.get(`${config.API_URL}/monsters`, {

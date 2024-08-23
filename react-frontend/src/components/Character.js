@@ -10,6 +10,9 @@ const Character = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // Reset characters immediately when filters change
+        setCharacters([]);
+
         if (characterName || selectedOrigin) {
             setLoading(true);
             axios.get(`${config.API_URL}/characters`, { 
@@ -27,7 +30,7 @@ const Character = () => {
                 setLoading(false);
  });
         } else {
-            // Reset the displayed characters when no filter is empty
+            // Reset the displayed characters when no filter is applied
             setCharacters([]);  
         }
     }, [characterName, selectedOrigin]);
