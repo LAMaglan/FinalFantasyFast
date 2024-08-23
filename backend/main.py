@@ -25,3 +25,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"Final Fantasy": "FastAPI"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
