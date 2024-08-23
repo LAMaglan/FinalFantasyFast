@@ -1,14 +1,6 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./react-frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
 
   backend:
     build:
@@ -18,6 +10,23 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:///./sql_app.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
     # optionally map database to localhost
     #volumes:
     #  - ./data/backend:/app  # Ensure this maps to a correct path on your host
+
+  frontend:
+    build:
+      context: ./react-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
