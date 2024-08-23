@@ -14,7 +14,7 @@ services:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/health"]
       interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 3
     # optionally map database to localhost
     #volumes:
     #  - ./data/backend:/app  # Ensure this maps to a correct path on your host
