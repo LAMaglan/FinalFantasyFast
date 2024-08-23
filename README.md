@@ -1,3 +1,5 @@
+Note: a fair amount of help from ChatGPT throughout
+
 The microservice can be run with or without docker-compose
 
 
