@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
+import { games } from '../constants';
 
 const Monster = () => {
     const [monsters, setMonsters] = useState([]);
     const [monsterName, setMonsterName] = useState('');
+    const [selectedGame, setSelectedGame] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (monsterName) {
+        // Reset monsters immediately when filters change
+        setMonsters([]);
+
+        if (monsterName || selectedGame) {
             setLoading(true);
-            axios.get(`${config.API_URL}/monsters`, { params: { name: monsterName } })
+            axios.get(`${config.API_URL}/monsters`, {
+                params: {
+                    name: monsterName,
+                    game: selectedGame
+                }
+            })
                 .then(response => {
                     setMonsters(response.data);
                     setLoading(false);
@@ -20,13 +30,17 @@ const Monster = () => {
                     setLoading(false);
                 });
         } else {
-            // Reset the displayed monsters when the input is empty
-            setMonsters([]);  
+            // Reset the displayed monsters when no filter is applied
+            setMonsters([]);
         }
-    }, [monsterName]);
+    }, [monsterName, selectedGame]);
 
     const handleInputChange = (e) => {
         setMonsterName(e.target.value);
+    };
+
+    const handleGameChange = (e) => {
+        setSelectedGame(e.target.value);
     };
 
     return (
@@ -37,6 +51,12 @@ const Monster = () => {
                 value={monsterName}
                 onChange={handleInputChange}
             />
+            <select value={selectedGame} onChange={handleGameChange}>
+                <option value="">All Games</option>
+                {games.map(games => (
+                    <option key={games} value={games}>{games}</option>
+                ))}
+            </select>
             {loading && <div>Loading...</div>}
             {monsters.length > 0 ? (
                 monsters.map(monster => (
@@ -55,7 +75,7 @@ const Monster = () => {
                     </div>
                 ))
             ) : (
-                monsterName && !loading && <p>No monsters found</p>
+                (monsterName || selectedGame) && !loading && <p>No monsters found</p>
             )}
         </div>
     );

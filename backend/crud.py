@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from models import CharacterSQL, MonsterSQL
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
+from typing import Optional
 
 def create_character(db: Session, character: dict):
     try:
@@ -51,16 +52,27 @@ def create_monster(db: Session, monster: dict):
     except IntegrityError:
         db.rollback()
         return None
+    
 
-def get_characters(db: Session):
-    return db.query(CharacterSQL).all()
+def get_characters(db: Session, **filters):
+    query = db.query(CharacterSQL)
+    
+    if 'name' in filters:
+        query = query.filter(CharacterSQL.name.ilike(f"%{filters['name']}%"))
+        
+    if 'origin' in filters:
+        query = query.filter(CharacterSQL.origin == filters['origin'])
 
-def get_monsters(db: Session):
-    return db.query(MonsterSQL).all()
+    return query.all()
 
 
-def get_characters_by_name(db: Session, name: str):
-    return db.query(CharacterSQL).filter(CharacterSQL.name.ilike(f'%{name}%')).all()
+def get_monsters(db: Session, **filters):
+    query = db.query(MonsterSQL)
+    
+    if 'name' in filters:
+        query = query.filter(MonsterSQL.name.ilike(f"%{filters['name']}%"))
+        
+    if 'game' in filters:
+        query = query.filter(MonsterSQL.game == filters['game'])
 
-def get_monsters_by_name(db: Session, name: str):
-    return db.query(MonsterSQL).filter(MonsterSQL.name.ilike(f'%{name}%')).all()
+    return query.all()
