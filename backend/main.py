@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from routers import characters, monsters
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from database import SessionLocal, engine
+from models import Base, CharacterSQL 
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,4 +31,15 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    db: Session = SessionLocal()
+    try:
+        # Perform a simple query to check database state
+        character_count = db.query(CharacterSQL).count()
+        if character_count >= 0:
+            return {"status": "healthy"}
+    except Exception as e:
+        return {"status": "unhealthy", "detail": str(e)}
+    finally:
+        db.close()
+
+    return {"status": "unhealthy"}
