@@ -1,14 +1,6 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./react-frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
 
   backend:
     build:
@@ -21,3 +13,12 @@ services:
     # optionally map database to localhost
     #volumes:
     #  - ./data/backend:/app  # Ensure this maps to a correct path on your host
+    
+  frontend:
+    build:
+      context: ./react-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
