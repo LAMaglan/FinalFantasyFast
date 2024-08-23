@@ -1,32 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
+import { origins } from '../constants';
 
 const Character = () => {
     const [characters, setCharacters] = useState([]);
     const [characterName, setCharacterName] = useState('');
+    const [selectedOrigin, setSelectedOrigin] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (characterName) {
+        if (characterName || selectedOrigin) {
             setLoading(true);
-            axios.get(`${config.API_URL}/characters`, { params: { name: characterName } })
-                .then(response => {
-                    setCharacters(response.data);
-                    setLoading(false);
-                })
-                .catch(error => {
-                    console.error("There was an error fetching the characters!", error);
-                    setLoading(false);
-                });
+            axios.get(`${config.API_URL}/characters`, { 
+                params: { 
+                    name: characterName,
+                    origin: selectedOrigin
+                } 
+            })
+            .then(response => {
+                setCharacters(response.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("There was an error fetching the characters!", error);
+                setLoading(false);
+ });
         } else {
-            // Reset the displayed characters when the input is empty
+            // Reset the displayed characters when no filter is empty
             setCharacters([]);  
         }
-    }, [characterName]);
+    }, [characterName, selectedOrigin]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
+    }
+
+    const handleOriginChange = (e) => {
+        setSelectedOrigin(e.target.value);
     }
 
     return (
@@ -37,6 +48,12 @@ const Character = () => {
                 value={characterName}
                 onChange={handleInputChange}
             />
+            <select value={selectedOrigin} onChange={handleOriginChange}>
+                <option value="">All Games</option>
+                {origins.map(origin => (
+                    <option key={origin} value={origin}>{origin}</option>
+                ))}
+            </select>
             {loading && <div>Loading...</div>}
             {characters.length > 0 ? (
                 characters.map(character => (
@@ -57,7 +74,7 @@ const Character = () => {
                     </div>
                 ))
             ) : (
-                characterName && !loading && <p>No characters found</p>
+                (characterName || selectedOrigin) && !loading && <p>No characters found</p>
             )}
         </div>
     );
