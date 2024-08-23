@@ -13,7 +13,7 @@ services:
     # optionally map database to localhost
     #volumes:
     #  - ./data/backend:/app  # Ensure this maps to a correct path on your host
-    
+
   frontend:
     build:
       context: ./react-frontend
@@ -22,3 +22,5 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+    depends_on:
+      - backend
