@@ -38,8 +38,14 @@ def read_characters(db: Session = Depends(get_db)):
     return crud.get_characters(db)
 
 @router.get("/characters/", response_model=List[Character])
-def get_characters_by_name(name: str, db: Session = Depends(get_db)):
-    characters = crud.get_characters_by_name(db, name)
+def get_characters(name: Optional[str] = None, origin: Optional[str] = None, db: Session = Depends(get_db)):
+    filters = {}
+    if name:
+        filters['name'] = name
+    if origin:
+        filters['origin'] = origin
+
+    characters = crud.get_characters(db, **filters)
     if not characters:
         raise HTTPException(status_code=404, detail="Characters not found")
     return characters
