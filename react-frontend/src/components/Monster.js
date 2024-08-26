@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { games } from '../constants';
 import { debounce } from 'lodash';
 
 const Monster = () => {
@@ -11,9 +10,11 @@ const Monster = () => {
     const [selectedGame, setSelectedGame] = useState('');
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [games, setGames] = useState([]);
 
     useEffect(() => {
         fetchAllMonsters();
+        fetchGames();
     }, []);
 
     const fetchAllMonsters = async () => {
@@ -22,6 +23,19 @@ const Monster = () => {
             setAllMonsters(response.data);
         } catch (error) {
             console.error("There was an error fetching all monsters!", error);
+        }
+    };
+
+    const fetchGames = async () => {
+        try {
+            const response = await axios.get(`${config.API_URL}/monsters/games`);
+            
+            // Logging the response to see if it fetches correctly
+            console.log("Games fetched:", response.data);
+            
+            setGames(response.data);
+        } catch (error) {
+            console.error("There was an error fetching games!", error);
         }
     };
 
@@ -78,8 +92,8 @@ const Monster = () => {
             />
             <select value={selectedGame} onChange={handleGameChange}>
                 <option value="">All Games</option>
-                {games.map(game => (
-                    <option key={game} value={game}>{game}</option>
+                {games.map((game, index) => (
+                    <option key={index} value={game}>{game}</option>
                 ))}
             </select>
             {loading && <div>Loading...</div>}

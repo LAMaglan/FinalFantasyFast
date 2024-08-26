@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { origins } from '../constants';
 import { debounce } from 'lodash';
 
 const Character = () => {
@@ -11,9 +10,11 @@ const Character = () => {
     const [selectedOrigin, setSelectedOrigin] = useState('');
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [origins, setOrigins] = useState([]);
 
     useEffect(() => {
         fetchAllCharacters();
+        fetchOrigins();
     }, []);
 
     const fetchAllCharacters = async () => {
@@ -22,6 +23,15 @@ const Character = () => {
             setAllCharacters(response.data);
         } catch (error) {
             console.error("There was an error fetching all characters!", error);
+        }
+    };
+
+    const fetchOrigins = async () => {
+        try {
+            const response = await axios.get(`${config.API_URL}/characters/origins`);
+            setOrigins(response.data);
+        } catch (error) {
+            console.error("There was an error fetching origins!", error);
         }
     };
 
