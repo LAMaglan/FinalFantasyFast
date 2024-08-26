@@ -1,65 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { origins } from '../constants';
+import { debounce } from 'lodash';
 
 const Character = () => {
-    const [characters, setCharacters] = useState([]);
+    const [allCharacters, setAllCharacters] = useState([]);
+    const [filteredCharacters, setFilteredCharacters] = useState([]);
     const [characterName, setCharacterName] = useState('');
     const [selectedOrigin, setSelectedOrigin] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     useEffect(() => {
-        // Reset characters immediately when filters change
-        setCharacters([]);
+        fetchAllCharacters();
+    }, []);
 
-        if (characterName || selectedOrigin) {
-            setLoading(true);
-            axios.get(`${config.API_URL}/characters`, { 
-                params: { 
-                    name: characterName,
-                    origin: selectedOrigin
-                } 
-            })
-            .then(response => {
-                setCharacters(response.data);
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error("There was an error fetching the characters!", error);
-                setLoading(false);
- });
-        } else {
-            // Reset the displayed characters when no filter is applied
-            setCharacters([]);  
+    const fetchAllCharacters = async () => {
+        try {
+            const response = await axios.get(`${config.API_URL}/stored-characters`);
+            setAllCharacters(response.data);
+        } catch (error) {
+            console.error("There was an error fetching all characters!", error);
         }
-    }, [characterName, selectedOrigin]);
+    };
+
+    const updateFilteredCharacters = useCallback(
+        debounce(() => {
+            let filteredSet = new Set();
+            allCharacters.forEach(character => {
+                if (
+                    (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
+                    (!selectedOrigin || character.origin === selectedOrigin)
+                ) {
+                    filteredSet.add(character.name);
+                }
+            });
+
+            setFilteredCharacters(Array.from(filteredSet).map(name => allCharacters.find(character => character.name === name)));
+            setLoading(false);
+        }, 300),
+        [characterName, selectedOrigin, allCharacters]
+    );
+
+    useEffect(() => {
+        setLoading(true);
+        updateFilteredCharacters();
+    }, [characterName, selectedOrigin, updateFilteredCharacters]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
-    }
+        setShowDropdown(true);
+    };
 
     const handleOriginChange = (e) => {
         setSelectedOrigin(e.target.value);
-    }
+    };
+
+    const handleInputFocus = () => {
+        setShowDropdown(true);
+    };
+
+    const handleInputBlur = () => {
+        setTimeout(() => setShowDropdown(false), 200);
+    };
 
     return (
-        <div>
+        <div className="character-container">
             <input
                 type="text"
                 placeholder="Enter character name"
                 value={characterName}
                 onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                className="character-input"
             />
             <select value={selectedOrigin} onChange={handleOriginChange}>
-                <option value="">All Games</option>
+                <option value="">All Origins</option>
                 {origins.map(origin => (
                     <option key={origin} value={origin}>{origin}</option>
                 ))}
             </select>
             {loading && <div>Loading...</div>}
-            {characters.length > 0 ? (
-                characters.map(character => (
+            {showDropdown && filteredCharacters.length > 0 && (
+                <div className="dropdown">
+                    {filteredCharacters.map(character => (
+                        <div key={character.characterId} onMouseDown={() => setCharacterName(character.name)} className="dropdown-option">
+                            {character.name}
+                        </div>
+                    ))}
+                </div>
+            )}
+            {filteredCharacters.length > 0 ? (
+                filteredCharacters.map(character => (
                     <div key={character.characterId}>
                         <h1>{character.name}</h1>
                         <p>Japanese Name: {character.japaneseName || 'N/A'}</p>
@@ -71,8 +105,12 @@ const Character = () => {
                         <p>Weight: {character.weight}</p>
                         <p>Origin: {character.origin}</p>
                         <p>Description: {character.description || 'N/A'}</p>
-                        {character.pictures && character.pictures.length > 0 && (
-                            <img src={character.pictures[0].url} alt={character.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
+                        {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
+                            <img 
+                                src={character.picture || character.pictures[0].url} 
+                                alt={character.name} 
+                                style={{ maxWidth: '200px', maxHeight: '200px' }} 
+                            />
                         )}
                     </div>
                 ))
