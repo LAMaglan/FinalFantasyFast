@@ -30,6 +30,11 @@ class Monster(BaseModel):
 def read_monsters(db: Session = Depends(get_db)):
     return crud.get_monsters(db)
 
+@router.get("/monsters/games", response_model=List[str])
+def get_monster_games(db: Session = Depends(get_db)):
+    monsters = crud.get_monsters(db)
+    unique_games = {monster.game for monster in monsters if monster.game}
+    return list(unique_games)
 
 @router.get("/monsters/", response_model=List[Monster])
 def get_characters(name: Optional[str] = None, game: Optional[str] = None, db: Session = Depends(get_db)):
