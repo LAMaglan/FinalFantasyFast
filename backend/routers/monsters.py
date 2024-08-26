@@ -37,7 +37,7 @@ def get_monster_games(db: Session = Depends(get_db)):
     return list(unique_games)
 
 @router.get("/monsters/", response_model=List[Monster])
-def get_characters(name: Optional[str] = None, game: Optional[str] = None, db: Session = Depends(get_db)):
+def get_monsters(name: Optional[str] = None, game: Optional[str] = None, db: Session = Depends(get_db)):
     filters = {}
     if name:
         filters['name'] = name
