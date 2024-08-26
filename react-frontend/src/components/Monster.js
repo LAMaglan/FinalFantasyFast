@@ -96,6 +96,7 @@ const Monster = () => {
                 filteredMonsters.map(monster => (
                     <div key={monster.monsterId}>
                         <h1>{monster.name}</h1>
+                        <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
                         <p>Japanese Name: {monster.japaneseName}</p>
                         <p>Elemental Affinity: {monster.elementalAffinity || 'N/A'}</p>
                         <p>Elemental Weakness: {monster.elementalWeakness || 'N/A'}</p>
@@ -105,7 +106,6 @@ const Monster = () => {
                         <p>Defense: {monster.defense}</p>
                         <p>Description: {monster.description || 'N/A'}</p>
                         <p>Game: {monster.game}</p>
-                        <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
                     </div>
                 ))
             ) : (
