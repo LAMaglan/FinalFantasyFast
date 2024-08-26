@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import characters, monsters
+from routers import characters, monsters, games
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ app = FastAPI()
 
 app.include_router(characters.router, prefix="/api", tags=["characters"])
 app.include_router(monsters.router, prefix="/api", tags=["monsters"])
+app.include_router(games.router, prefix="/api", tags=["games"])
 
 origins = [
     "http://localhost:3000",

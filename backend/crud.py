@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import CharacterSQL, MonsterSQL
+from models import CharacterSQL, MonsterSQL, GameSQL
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 from typing import Optional
@@ -52,7 +52,25 @@ def create_monster(db: Session, monster: dict):
     except IntegrityError:
         db.rollback()
         return None
-    
+
+def create_game(db: Session, game: dict):
+    try:
+        db_game = GameSQL(
+            gameId=UUID(game["gameId"]), # TODO: weird error - TypeERror: list indices must be integers or slices, not str..??
+            title=game["title"],
+            picture=game["picture"],
+            platform=game["platform"],
+            releaseDate=game["releaseDate"],
+            description=game["description"]
+        )
+        db.add(db_game)
+        db.commit()
+        db.refresh(db_game)
+        return db_game
+    except IntegrityError:
+        db.rollback()
+        return None
+
 
 def get_characters(db: Session, **filters):
     query = db.query(CharacterSQL)
@@ -76,3 +94,7 @@ def get_monsters(db: Session, **filters):
         query = query.filter(MonsterSQL.game == filters['game'])
 
     return query.all()
+
+
+def get_games(db: Session):
+    return db.query(GameSQL).all()

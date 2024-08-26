@@ -37,3 +37,13 @@ class MonsterSQL(Base):
     picture = Column(String)
     description = Column(Text)
     game = Column(String)
+
+class GameSQL(Base):
+    __tablename__ = "games"
+
+    gameId = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    title = Column(String, index=True)
+    picture = Column(String)
+    platform = Column(String)
+    releaseDate = Column(String)
+    description = Column(Text)
