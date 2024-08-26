@@ -96,6 +96,13 @@ const Character = () => {
                 filteredCharacters.map(character => (
                     <div key={character.characterId}>
                         <h1>{character.name}</h1>
+                        {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
+                            <img 
+                                src={character.picture || character.pictures[0].url} 
+                                alt={character.name} 
+                                style={{ maxWidth: '200px', maxHeight: '200px' }} 
+                            />
+                        )}
                         <p>Japanese Name: {character.japaneseName || 'N/A'}</p>
                         <p>Age: {character.age}</p>
                         <p>Gender: {character.gender}</p>
@@ -105,13 +112,6 @@ const Character = () => {
                         <p>Weight: {character.weight}</p>
                         <p>Origin: {character.origin}</p>
                         <p>Description: {character.description || 'N/A'}</p>
-                        {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
-                            <img 
-                                src={character.picture || character.pictures[0].url} 
-                                alt={character.name} 
-                                style={{ maxWidth: '200px', maxHeight: '200px' }} 
-                            />
-                        )}
                     </div>
                 ))
             ) : (
