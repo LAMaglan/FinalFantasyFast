@@ -5,7 +5,7 @@ import { debounce } from 'lodash';
 
 const Character = () => {
     const [allCharacters, setAllCharacters] = useState([]);
-    const [filteredCharacters, setFilteredCharacters] = useState([]);
+    const [filteredCharacterNames, setFilteredCharacterNames] = useState([]);
     const [displayedCharacters, setDisplayedCharacters] = useState([]);
     const [characterName, setCharacterName] = useState('');
     const [selectedOrigin, setSelectedOrigin] = useState('');
@@ -36,7 +36,7 @@ const Character = () => {
         }
     };
 
-    const updateFilteredCharacters = useCallback(
+    const updateFilteredCharacterNames = useCallback(
         debounce(() => {
             let uniqueNames = new Set();
             allCharacters.forEach(character => {
@@ -47,16 +47,25 @@ const Character = () => {
                     uniqueNames.add(character.name);
                 }
             });
-            setFilteredCharacters(Array.from(uniqueNames));
+            setFilteredCharacterNames(Array.from(uniqueNames));
             setLoading(false);
         }, 300),
         [characterName, selectedOrigin, allCharacters]
     );
 
+    const updateDisplayedCharacters = useCallback(() => {
+        const matchedCharacters = allCharacters.filter(character => 
+            (!characterName || character.name === characterName) &&
+            (!selectedOrigin || character.origin === selectedOrigin)
+        );
+        setDisplayedCharacters(matchedCharacters);
+    }, [characterName, selectedOrigin, allCharacters]);
+
     useEffect(() => {
         setLoading(true);
-        updateFilteredCharacters();
-    }, [characterName, selectedOrigin, updateFilteredCharacters]);
+        updateFilteredCharacterNames();
+        updateDisplayedCharacters();
+    }, [characterName, selectedOrigin, updateFilteredCharacterNames, updateDisplayedCharacters]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
@@ -78,8 +87,6 @@ const Character = () => {
     const handleCharacterSelect = (name) => {
         setCharacterName(name);
         setShowDropdown(false);
-        const matchedCharacters = allCharacters.filter(character => character.name === name);
-        setDisplayedCharacters(matchedCharacters);
     };
 
     return (
@@ -100,9 +107,9 @@ const Character = () => {
                 ))}
             </select>
             {loading && <div>Loading...</div>}
-            {showDropdown && filteredCharacters.length > 0 && (
+            {showDropdown && filteredCharacterNames.length > 0 && (
                 <div className="dropdown">
-                    {filteredCharacters.map(name => (
+                    {filteredCharacterNames.map(name => (
                         <div key={name} onMouseDown={() => handleCharacterSelect(name)} className="dropdown-option">
                             {name}
                         </div>
