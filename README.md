@@ -2,6 +2,11 @@ Note: a fair amount of help from ChatGPT throughout
 
 The microservice can be run with or without docker-compose
 
+![Screenshot from 2024-08-27 15-10-32](https://github.com/user-attachments/assets/0dabf685-d3a4-4bd7-9ab8-53d50229e640)
+
+![Screenshot from 2024-08-27 15-11-00](https://github.com/user-attachments/assets/2c97a793-e096-4d9a-9d3e-69697107b954)
+
+
 
 # Run with docker-compose
 
