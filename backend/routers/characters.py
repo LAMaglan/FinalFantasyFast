@@ -47,21 +47,38 @@ def roman_to_int(roman: str) -> int:
 def is_roman_numeral(s: str) -> bool:
     return re.fullmatch(r'[IVXLCDM]+', s) is not None
 
-def sort_roman_numerals(games: List[str]) -> List[str]:
-    def extract_main_part(game: str) -> str:
-        return game.rsplit(" ", 1)[-1]
+def extract_parts(game: str):
+    """
+    Extract primary and secondary parts from the game title.
+    Primary - main roman numeral part
+    Secondary - numeral part after hyphen if exists, else None
+    """
+    main_part = game.rsplit(" ", 1)[-1]
+    if '-' in main_part:
+        primary, secondary = main_part.split('-')
+    else:
+        primary, secondary = main_part, None
+    return primary, secondary
 
+def sort_roman_numerals(games: List[str]) -> List[str]:
     def sort_key(game: str):
-        main_part = extract_main_part(game)
+        primary, secondary = extract_parts(game)
+        
         if game == "Final Fantasy":
-            return 1
-        if is_roman_numeral(main_part):
-            return roman_to_int(main_part)
-        # Ensure non-numeric entries are sorted last
-        return float('inf')  
-    
-    # First sort numerically, then alphabetically for tie-breakers
-    return sorted(games, key=lambda x: (sort_key(x), x))
+            primary_val = 1
+        elif is_roman_numeral(primary):
+            primary_val = roman_to_int(primary)
+        else:
+            # For non-numeric entries, sort last
+            primary_val = float('inf')  
+
+        # Set secondary_val to 0 if no secondary part exists, making original versions come first
+        secondary_val = int(secondary) if secondary and secondary.isdigit() else 0
+        
+        return (primary_val, secondary_val, game)
+
+    # Sort by primary numerics, then by secondary (tie breaker), then alphabetically for non-numerics
+    return sorted(games, key=sort_key)
 
 
 
