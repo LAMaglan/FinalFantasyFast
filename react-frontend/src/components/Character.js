@@ -6,6 +6,7 @@ import { debounce } from 'lodash';
 const Character = () => {
     const [allCharacters, setAllCharacters] = useState([]);
     const [filteredCharacters, setFilteredCharacters] = useState([]);
+    const [displayedCharacters, setDisplayedCharacters] = useState([]);
     const [characterName, setCharacterName] = useState('');
     const [selectedOrigin, setSelectedOrigin] = useState('');
     const [loading, setLoading] = useState(false);
@@ -37,17 +38,16 @@ const Character = () => {
 
     const updateFilteredCharacters = useCallback(
         debounce(() => {
-            let filteredSet = new Set();
+            let uniqueNames = new Set();
             allCharacters.forEach(character => {
                 if (
                     (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
                     (!selectedOrigin || character.origin === selectedOrigin)
                 ) {
-                    filteredSet.add(character.name);
+                    uniqueNames.add(character.name);
                 }
             });
-
-            setFilteredCharacters(Array.from(filteredSet).map(name => allCharacters.find(character => character.name === name)));
+            setFilteredCharacters(Array.from(uniqueNames));
             setLoading(false);
         }, 300),
         [characterName, selectedOrigin, allCharacters]
@@ -75,6 +75,13 @@ const Character = () => {
         setTimeout(() => setShowDropdown(false), 200);
     };
 
+    const handleCharacterSelect = (name) => {
+        setCharacterName(name);
+        setShowDropdown(false);
+        const matchedCharacters = allCharacters.filter(character => character.name === name);
+        setDisplayedCharacters(matchedCharacters);
+    };
+
     return (
         <div className="character-container">
             <input
@@ -95,15 +102,15 @@ const Character = () => {
             {loading && <div>Loading...</div>}
             {showDropdown && filteredCharacters.length > 0 && (
                 <div className="dropdown">
-                    {filteredCharacters.map(character => (
-                        <div key={character.characterId} onMouseDown={() => setCharacterName(character.name)} className="dropdown-option">
-                            {character.name}
+                    {filteredCharacters.map(name => (
+                        <div key={name} onMouseDown={() => handleCharacterSelect(name)} className="dropdown-option">
+                            {name}
                         </div>
                     ))}
                 </div>
             )}
-            {filteredCharacters.length > 0 ? (
-                filteredCharacters.map(character => (
+            {displayedCharacters.length > 0 ? (
+                displayedCharacters.map(character => (
                     <div key={character.characterId}>
                         <h1>{character.name}</h1>
                         {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
