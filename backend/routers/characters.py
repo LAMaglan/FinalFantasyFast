@@ -92,16 +92,3 @@ def get_character_origins(db: Session = Depends(get_db)):
     characters = crud.get_characters(db)
     unique_origins = {character.origin for character in characters if character.origin}
     return sort_roman_numerals(list(unique_origins))
-
-@router.get("/characters/", response_model=List[Character])
-def get_characters(name: Optional[str] = None, origin: Optional[str] = None, db: Session = Depends(get_db)):
-    filters = {}
-    if name:
-        filters['name'] = name
-    if origin:
-        filters['origin'] = origin
-
-    characters = crud.get_characters(db, **filters)
-    if not characters:
-        raise HTTPException(status_code=404, detail="Characters not found")
-    return characters
