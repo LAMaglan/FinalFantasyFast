@@ -49,24 +49,3 @@ def get_monster_games(db: Session = Depends(get_db)):
     monsters = crud.get_monsters(db)
     unique_games = {monster.game for monster in monsters if monster.game}
     return sort_zero_padded_numbers(list(unique_games)) 
-
-@router.get("/monsters/", response_model=List[Monster])
-def get_monsters(name: Optional[str] = None, game: Optional[str] = None, db: Session = Depends(get_db)):
-    filters = {}
-    if name:
-        filters['name'] = name
-    if game:
-        filters['game'] = game
-
-    monsters = crud.get_monsters(db, **filters)
-    if not monsters:
-        raise HTTPException(status_code=404, detail="Characters not found")
-    else:
-        # Sanitize response data
-        sanitized_monsters = []
-        for monster in monsters:
-            if monster.elementalAffinity is None:
-                monster.elementalAffinity = ""
-            sanitized_monsters.append(monster)
-        
-        return sanitized_monsters
