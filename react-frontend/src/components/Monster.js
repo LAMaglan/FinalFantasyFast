@@ -54,10 +54,19 @@ const Monster = () => {
         [monsterName, selectedGame, allMonsters]
     );
 
+    const updateDisplayedMonsters = useCallback(() => {
+        const matchedMonsters = allMonsters.filter(monster => 
+            (!monsterName || monster.name === monsterName) &&
+            (!selectedGame || monster.game === selectedGame)
+        );
+        setDisplayedMonsters(matchedMonsters);
+    }, [monsterName, selectedGame, allMonsters]);
+
     useEffect(() => {
         setLoading(true);
         updateFilteredMonsterNames();
-    }, [monsterName, selectedGame, updateFilteredMonsterNames]);
+        updateDisplayedMonsters();
+    }, [monsterName, selectedGame, updateFilteredMonsterNames, updateDisplayedMonsters]);
 
     const handleInputChange = (e) => {
         setMonsterName(e.target.value);
@@ -79,8 +88,6 @@ const Monster = () => {
     const handleMonsterSelect = (name) => {
         setMonsterName(name);
         setShowDropdown(false);
-        const matchedMonsters = allMonsters.filter(monster => monster.name === name);
-        setDisplayedMonsters(matchedMonsters);
     };
 
     return (
