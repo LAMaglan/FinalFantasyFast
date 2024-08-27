@@ -5,7 +5,8 @@ import { debounce } from 'lodash';
 
 const Monster = () => {
     const [allMonsters, setAllMonsters] = useState([]);
-    const [filteredMonsters, setFilteredMonsters] = useState([]);
+    const [filteredMonsterNames, setFilteredMonsterNames] = useState([]);
+    const [displayedMonsters, setDisplayedMonsters] = useState([]);
     const [monsterName, setMonsterName] = useState('');
     const [selectedGame, setSelectedGame] = useState('');
     const [loading, setLoading] = useState(false);
@@ -29,29 +30,25 @@ const Monster = () => {
     const fetchGames = async () => {
         try {
             const response = await axios.get(`${config.API_URL}/monsters/games`);
-            
-            // Logging the response to see if it fetches correctly
             console.log("Games fetched:", response.data);
-            
             setGames(response.data);
         } catch (error) {
             console.error("There was an error fetching games!", error);
         }
     };
 
-    const updateFilteredMonsters = useCallback(
+    const updateFilteredMonsterNames = useCallback(
         debounce(() => {
-            let filteredSet = new Set();
+            let uniqueNames = new Set();
             allMonsters.forEach(monster => {
                 if (
                     (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
                     (!selectedGame || monster.game === selectedGame)
                 ) {
-                    filteredSet.add(monster.name);
+                    uniqueNames.add(monster.name);
                 }
             });
-
-            setFilteredMonsters(Array.from(filteredSet).map(name => allMonsters.find(monster => monster.name === name)));
+            setFilteredMonsterNames(Array.from(uniqueNames));
             setLoading(false);
         }, 300),
         [monsterName, selectedGame, allMonsters]
@@ -59,8 +56,8 @@ const Monster = () => {
 
     useEffect(() => {
         setLoading(true);
-        updateFilteredMonsters();
-    }, [monsterName, selectedGame, updateFilteredMonsters]);
+        updateFilteredMonsterNames();
+    }, [monsterName, selectedGame, updateFilteredMonsterNames]);
 
     const handleInputChange = (e) => {
         setMonsterName(e.target.value);
@@ -77,6 +74,13 @@ const Monster = () => {
 
     const handleInputBlur = () => {
         setTimeout(() => setShowDropdown(false), 200);
+    };
+
+    const handleMonsterSelect = (name) => {
+        setMonsterName(name);
+        setShowDropdown(false);
+        const matchedMonsters = allMonsters.filter(monster => monster.name === name);
+        setDisplayedMonsters(matchedMonsters);
     };
 
     return (
@@ -97,17 +101,17 @@ const Monster = () => {
                 ))}
             </select>
             {loading && <div>Loading...</div>}
-            {showDropdown && (
+            {showDropdown && filteredMonsterNames.length > 0 && (
                 <div className="dropdown">
-                    {filteredMonsters.map(monster => (
-                        <div key={monster.monsterId} onMouseDown={() => setMonsterName(monster.name)} className="dropdown-option">
-                            {monster.name}
+                    {filteredMonsterNames.map(name => (
+                        <div key={name} onMouseDown={() => handleMonsterSelect(name)} className="dropdown-option">
+                            {name}
                         </div>
                     ))}
                 </div>
             )}
-            {filteredMonsters.length > 0 ? (
-                filteredMonsters.map(monster => (
+            {displayedMonsters.length > 0 ? (
+                displayedMonsters.map(monster => (
                     <div key={monster.monsterId}>
                         <h1>{monster.name}</h1>
                         <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
