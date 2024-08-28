@@ -1,6 +1,7 @@
 const config = {
-    // port of FastAPI backend
-    API_URL: 'http://127.0.0.1:8000/api' 
+    // Base URL for the FastAPI backend, routed through NGINX
+    // change to your domain or public IP if not running "locally"
+    API_URL: 'http://localhost/api' 
 };
 
 export default config;
