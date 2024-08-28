@@ -7,7 +7,6 @@ The microservice can be run with or without docker-compose
 ![Screenshot from 2024-08-27 15-11-00](https://github.com/user-attachments/assets/2c97a793-e096-4d9a-9d3e-69697107b954)
 
 
-
 # Run with docker-compose
 
 ```bash
@@ -20,6 +19,9 @@ rebuild with
 ```bash
 docker-compose up --build
 ```
+
+Note: nginx is somewhat superflous, unless this is deployed on a remote server, with many users,
+and/or larger data
 
 # Run without docker-compose
 
@@ -53,6 +55,7 @@ if using the docker-compose approach.
 
 The `characters` and `monsters` routers fetches data from the above link,
 and stores them in a sqlite3 database (sql_app.db).
+Note: the use of (sqlite) database is somewhat superflous, there are no POST endpoints in the backend API.
 
 The frontend is accessible through
 http://localhost:3000
