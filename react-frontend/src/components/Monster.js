@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { debounce } from 'lodash';
+import { debounce, sampleSize } from 'lodash';
 
 const Monster = () => {
     const [allMonsters, setAllMonsters] = useState([]);
@@ -68,6 +68,12 @@ const Monster = () => {
         setDisplayedMonsters(paginatedMonsters);
     }, [monsterName, selectedGame, currentPage, allMonsters]);
 
+    const displayRandomMonsters = () => {
+        const randomMonsters = sampleSize(allMonsters, itemsPerPage);
+        setDisplayedMonsters(randomMonsters);
+        setCurrentPage(1);  // Reset pagination
+    };
+
     useEffect(() => {
         setLoading(true);
         updateFilteredMonsterNames();
@@ -117,7 +123,7 @@ const Monster = () => {
     const totalPages = Math.ceil(matchedMonsters.length / itemsPerPage);
 
     return (
-        <div className="monster-container">
+        <div className="container">
             <input
                 type="text"
                 placeholder="Enter monster name"
@@ -125,14 +131,15 @@ const Monster = () => {
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="monster-input"
+                className="input"
             />
-            <select value={selectedGame} onChange={handleGameChange}>
+            <select value={selectedGame} onChange={handleGameChange} className="input">
                 <option value="">All Games</option>
                 {games.map((game, index) => (
                     <option key={index} value={game}>{game}</option>
                 ))}
             </select>
+            <button onClick={displayRandomMonsters} className="input">Show Random 5 Monsters</button>
             {loading && <div>Loading...</div>}
             {showDropdown && filteredMonsterNames.length > 0 && (
                 <div className="dropdown">
