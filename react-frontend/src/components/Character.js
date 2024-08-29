@@ -1,95 +1,47 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
 import config from '../config';
-import { debounce, sampleSize } from 'lodash';
+import { useFetchData } from '../hooks/useFetchData';
+import { useSearch } from '../hooks/useSearch';
+import DataList from './DataList';
 
 const Character = () => {
-    const [allCharacters, setAllCharacters] = useState([]);
-    const [filteredCharacterNames, setFilteredCharacterNames] = useState([]);
-    const [displayedCharacters, setDisplayedCharacters] = useState([]);
-    const [characterName, setCharacterName] = useState('');
-    const [selectedOrigin, setSelectedOrigin] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [origins, setOrigins] = useState([]);
-    const itemsPerPage = 5;
+    const { data: allCharacters, loading: charactersLoading } = useFetchData(`${config.API_URL}/stored-characters`);
+    const { data: origins = [] } = useFetchData(`${config.API_URL}/characters/origins`);
+    
+    const {
+        displayedItems,
+        filteredNames,
+        searchTerm,
+        selectedFilter,
+        showDropdown,
+        loading,
+        currentPage,
+        setSearchTerm,
+        setSelectedFilter,
+        setShowDropdown,
+        setCurrentPage,
+        displayRandomItems,
+        updateFilteredNames,
+        updateDisplayedItems
+    } = useSearch(allCharacters, 5);
 
     useEffect(() => {
-        fetchAllCharacters();
-        fetchOrigins();
-    }, []);
-
-    const fetchAllCharacters = async () => {
-        try {
-            const response = await axios.get(`${config.API_URL}/stored-characters`);
-            setAllCharacters(response.data);
-            showRandomCharacters(response.data);
-        } catch (error) {
-            console.error("There was an error fetching all characters!", error);
-        }
-    };
-
-    const fetchOrigins = async () => {
-        try {
-            const response = await axios.get(`${config.API_URL}/characters/origins`);
-            setOrigins(response.data);
-        } catch (error) {
-            console.error("There was an error fetching origins!", error);
-        }
-    };
-
-    const updateFilteredCharacterNames = useCallback(
-        debounce(() => {
-            let uniqueNames = new Set();
-            allCharacters.forEach(character => {
-                if (
-                    (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
-                    (!selectedOrigin || character.origin === selectedOrigin)
-                ) {
-                    uniqueNames.add(character.name);
-                }
-            });
-
-            setFilteredCharacterNames(Array.from(uniqueNames));
-            setLoading(false);
-        }, 300),
-        [characterName, selectedOrigin, allCharacters]
-    );
-
-    const showRandomCharacters = useCallback((characters = allCharacters) => {
-        const filteredCharacters = characters.filter(character =>
-            (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
-            (!selectedOrigin || character.origin === selectedOrigin)
-        );
-        setDisplayedCharacters(sampleSize(filteredCharacters, itemsPerPage));
-        setCharacterName('');
-        setShowDropdown(false);
-    }, [allCharacters, characterName, selectedOrigin]);
+        updateFilteredNames();
+    }, [searchTerm, selectedFilter, updateFilteredNames]);
 
     useEffect(() => {
-        setLoading(true);
-        updateFilteredCharacterNames();
-    }, [characterName, selectedOrigin, updateFilteredCharacterNames]);
-
-    useEffect(() => {
-        if (!characterName) {
-            showRandomCharacters();
-        } else {
-            const filtered = allCharacters.filter(character =>
-                (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
-                (!selectedOrigin || character.origin === selectedOrigin)
-            );
-            setDisplayedCharacters(filtered.slice(0, itemsPerPage));
-        }
-    }, [allCharacters, characterName, selectedOrigin, showRandomCharacters]);
+        updateDisplayedItems();
+    }, [currentPage, updateDisplayedItems]);
 
     const handleInputChange = (e) => {
-        setCharacterName(e.target.value);
+        setSearchTerm(e.target.value);
         setShowDropdown(true);
+        setCurrentPage(1);
     };
 
-    const handleOriginChange = (e) => {
-        setSelectedOrigin(e.target.value);
+    const handleFilterChange = (e) => {
+        setSelectedFilter(e.target.value);
+        setCurrentPage(1);
     };
 
     const handleInputFocus = () => {
@@ -100,66 +52,42 @@ const Character = () => {
         setTimeout(() => setShowDropdown(false), 200);
     };
 
-    const handleCharacterSelect = (name) => {
-        setCharacterName(name);
-        setShowDropdown(false);
-    };
-
     return (
         <div className="container">
             <input
                 type="text"
                 placeholder="Enter character name"
-                value={characterName}
+                value={searchTerm}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
                 className="input"
             />
-            <select value={selectedOrigin} onChange={handleOriginChange} className="input">
+            <select value={selectedFilter} onChange={handleFilterChange} className="input">
                 <option value="">All Origins</option>
                 {origins.map(origin => (
                     <option key={origin} value={origin}>{origin}</option>
                 ))}
             </select>
-            <button onClick={() => showRandomCharacters()} className="input">Show Random 5 Characters</button>
+            <button onClick={displayRandomItems} className="input">Show Random 5 Characters</button>
             {loading && <div>Loading...</div>}
-            {showDropdown && filteredCharacterNames.length > 0 && (
+            {showDropdown && filteredNames.length > 0 && (
                 <div className="dropdown">
-                    {filteredCharacterNames.map(name => (
-                        <div key={name} onMouseDown={() => handleCharacterSelect(name)} className="dropdown-option">
+                    {filteredNames.map(name => (
+                        <div key={name} onMouseDown={() => setSearchTerm(name)} className="dropdown-option">
                             {name}
                         </div>
                     ))}
                 </div>
             )}
-            {displayedCharacters.length > 0 ? (
-                <>
-                    {displayedCharacters.map(character => (
-                        <div key={character.characterId}>
-                            <h1>{character.name}</h1>
-                            {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
-                                <img 
-                                    src={character.picture || character.pictures[0].url} 
-                                    alt={character.name} 
-                                    style={{ maxWidth: '200px', maxHeight: '200px' }} 
-                                />
-                            )}
-                            <p>Japanese Name: {character.japaneseName || 'N/A'}</p>
-                            <p>Age: {character.age}</p>
-                            <p>Gender: {character.gender}</p>
-                            <p>Race: {character.race}</p>
-                            <p>Job: {character.job}</p>
-                            <p>Height: {character.height}</p>
-                            <p>Weight: {character.weight}</p>
-                            <p>Origin: {character.origin}</p>
-                            <p>Description: {character.description || 'N/A'}</p>
-                        </div>
-                    ))}
-                </>
-            ) : (
-                (characterName || selectedOrigin) && !loading && <p>No characters found</p>
-            )}
+            <DataList
+                items={displayedItems}
+                onNextPage={() => setCurrentPage(prevPage => prevPage + 1)}
+                onPreviousPage={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+                currentPage={currentPage}
+                totalPages={Math.ceil(allCharacters.length / 5)}
+                itemsPerPage={5}  // Add this line
+            />
         </div>
     );
 };
