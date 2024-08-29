@@ -22,6 +22,8 @@ const Monster = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-monsters`);
             setAllMonsters(response.data);
+            // Initialize displayed monsters with the first 5 monsters
+            setDisplayedMonsters(response.data.slice(0, 5));
         } catch (error) {
             console.error("There was an error fetching all monsters!", error);
         }
@@ -55,11 +57,16 @@ const Monster = () => {
     );
 
     const updateDisplayedMonsters = useCallback(() => {
-        const matchedMonsters = allMonsters.filter(monster => 
-            (!monsterName || monster.name === monsterName) &&
+        const matchedMonsters = allMonsters.filter(monster =>
+            (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
             (!selectedGame || monster.game === selectedGame)
         );
-        setDisplayedMonsters(matchedMonsters);
+        if (monsterName || selectedGame) {
+            setDisplayedMonsters(matchedMonsters);
+        } else {
+            // Show the first 5 monsters by default if there is no filter
+            setDisplayedMonsters(allMonsters.slice(0, 5));
+        }
     }, [monsterName, selectedGame, allMonsters]);
 
     useEffect(() => {

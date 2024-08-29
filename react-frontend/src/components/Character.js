@@ -22,6 +22,8 @@ const Character = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-characters`);
             setAllCharacters(response.data);
+            // Initialize displayed characters with the first 5 characters
+            setDisplayedCharacters(response.data.slice(0, 5));
         } catch (error) {
             console.error("There was an error fetching all characters!", error);
         }
@@ -54,11 +56,16 @@ const Character = () => {
     );
 
     const updateDisplayedCharacters = useCallback(() => {
-        const matchedCharacters = allCharacters.filter(character => 
-            (!characterName || character.name === characterName) &&
+        const matchedCharacters = allCharacters.filter(character =>
+            (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
             (!selectedOrigin || character.origin === selectedOrigin)
         );
-        setDisplayedCharacters(matchedCharacters);
+        if (characterName || selectedOrigin) {
+            setDisplayedCharacters(matchedCharacters);
+        } else {
+            // Show the first 5 characters by default if there is no filter
+            setDisplayedCharacters(allCharacters.slice(0, 5));
+        }
     }, [characterName, selectedOrigin, allCharacters]);
 
     useEffect(() => {
@@ -92,7 +99,7 @@ const Character = () => {
     return (
         <div className="character-container">
             <input
-                type="text"
+ type="text"
                 placeholder="Enter character name"
                 value={characterName}
                 onChange={handleInputChange}
