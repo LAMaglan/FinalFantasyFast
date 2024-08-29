@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { debounce } from 'lodash';
+import { debounce, sampleSize } from 'lodash';
 
 const Character = () => {
     const [allCharacters, setAllCharacters] = useState([]);
@@ -12,6 +12,7 @@ const Character = () => {
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [origins, setOrigins] = useState([]);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         fetchAllCharacters();
@@ -22,6 +23,7 @@ const Character = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-characters`);
             setAllCharacters(response.data);
+            showRandomCharacters(response.data);
         } catch (error) {
             console.error("There was an error fetching all characters!", error);
         }
@@ -47,25 +49,39 @@ const Character = () => {
                     uniqueNames.add(character.name);
                 }
             });
+
             setFilteredCharacterNames(Array.from(uniqueNames));
             setLoading(false);
         }, 300),
         [characterName, selectedOrigin, allCharacters]
     );
 
-    const updateDisplayedCharacters = useCallback(() => {
-        const matchedCharacters = allCharacters.filter(character => 
-            (!characterName || character.name === characterName) &&
+    const showRandomCharacters = useCallback((characters = allCharacters) => {
+        const filteredCharacters = characters.filter(character =>
+            (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
             (!selectedOrigin || character.origin === selectedOrigin)
         );
-        setDisplayedCharacters(matchedCharacters);
-    }, [characterName, selectedOrigin, allCharacters]);
+        setDisplayedCharacters(sampleSize(filteredCharacters, itemsPerPage));
+        setCharacterName('');
+        setShowDropdown(false);
+    }, [allCharacters, characterName, selectedOrigin]);
 
     useEffect(() => {
         setLoading(true);
         updateFilteredCharacterNames();
-        updateDisplayedCharacters();
-    }, [characterName, selectedOrigin, updateFilteredCharacterNames, updateDisplayedCharacters]);
+    }, [characterName, selectedOrigin, updateFilteredCharacterNames]);
+
+    useEffect(() => {
+        if (!characterName) {
+            showRandomCharacters();
+        } else {
+            const filtered = allCharacters.filter(character =>
+                (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
+                (!selectedOrigin || character.origin === selectedOrigin)
+            );
+            setDisplayedCharacters(filtered.slice(0, itemsPerPage));
+        }
+    }, [allCharacters, characterName, selectedOrigin, showRandomCharacters]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
@@ -90,7 +106,7 @@ const Character = () => {
     };
 
     return (
-        <div className="character-container">
+        <div className="container">
             <input
                 type="text"
                 placeholder="Enter character name"
@@ -98,14 +114,15 @@ const Character = () => {
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="character-input"
+                className="input"
             />
-            <select value={selectedOrigin} onChange={handleOriginChange}>
+            <select value={selectedOrigin} onChange={handleOriginChange} className="input">
                 <option value="">All Origins</option>
                 {origins.map(origin => (
                     <option key={origin} value={origin}>{origin}</option>
                 ))}
             </select>
+            <button onClick={() => showRandomCharacters()} className="input">Show Random 5 Characters</button>
             {loading && <div>Loading...</div>}
             {showDropdown && filteredCharacterNames.length > 0 && (
                 <div className="dropdown">
@@ -117,27 +134,29 @@ const Character = () => {
                 </div>
             )}
             {displayedCharacters.length > 0 ? (
-                displayedCharacters.map(character => (
-                    <div key={character.characterId}>
-                        <h1>{character.name}</h1>
-                        {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
-                            <img 
-                                src={character.picture || character.pictures[0].url} 
-                                alt={character.name} 
-                                style={{ maxWidth: '200px', maxHeight: '200px' }} 
-                            />
-                        )}
-                        <p>Japanese Name: {character.japaneseName || 'N/A'}</p>
-                        <p>Age: {character.age}</p>
-                        <p>Gender: {character.gender}</p>
-                        <p>Race: {character.race}</p>
-                        <p>Job: {character.job}</p>
-                        <p>Height: {character.height}</p>
-                        <p>Weight: {character.weight}</p>
-                        <p>Origin: {character.origin}</p>
-                        <p>Description: {character.description || 'N/A'}</p>
-                    </div>
-                ))
+                <>
+                    {displayedCharacters.map(character => (
+                        <div key={character.characterId}>
+                            <h1>{character.name}</h1>
+                            {(character.picture || (character.pictures && character.pictures[0] && character.pictures[0].url)) && (
+                                <img 
+                                    src={character.picture || character.pictures[0].url} 
+                                    alt={character.name} 
+                                    style={{ maxWidth: '200px', maxHeight: '200px' }} 
+                                />
+                            )}
+                            <p>Japanese Name: {character.japaneseName || 'N/A'}</p>
+                            <p>Age: {character.age}</p>
+                            <p>Gender: {character.gender}</p>
+                            <p>Race: {character.race}</p>
+                            <p>Job: {character.job}</p>
+                            <p>Height: {character.height}</p>
+                            <p>Weight: {character.weight}</p>
+                            <p>Origin: {character.origin}</p>
+                            <p>Description: {character.description || 'N/A'}</p>
+                        </div>
+                    ))}
+                </>
             ) : (
                 (characterName || selectedOrigin) && !loading && <p>No characters found</p>
             )}

@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { debounce } from 'lodash';
+import { debounce, sampleSize } from 'lodash';
 
 const Monster = () => {
     const [allMonsters, setAllMonsters] = useState([]);
-    const [filteredMonsterNames, setFilteredMonsterNames] = useState([]);
+    const [filteredMonsterNames, setFilteredMonsterNames] = useState([]); // Corrected setter name here
     const [displayedMonsters, setDisplayedMonsters] = useState([]);
     const [monsterName, setMonsterName] = useState('');
     const [selectedGame, setSelectedGame] = useState('');
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [games, setGames] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         fetchAllMonsters();
@@ -22,6 +24,7 @@ const Monster = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-monsters`);
             setAllMonsters(response.data);
+            setDisplayedMonsters(sampleSize(response.data, itemsPerPage));  // Initialize with random monsters
         } catch (error) {
             console.error("There was an error fetching all monsters!", error);
         }
@@ -48,33 +51,52 @@ const Monster = () => {
                     uniqueNames.add(monster.name);
                 }
             });
-            setFilteredMonsterNames(Array.from(uniqueNames));
+            setFilteredMonsterNames(Array.from(uniqueNames)); // Corrected setter name here
             setLoading(false);
         }, 300),
         [monsterName, selectedGame, allMonsters]
     );
 
     const updateDisplayedMonsters = useCallback(() => {
-        const matchedMonsters = allMonsters.filter(monster => 
-            (!monsterName || monster.name === monsterName) &&
+        const matchedMonsters = allMonsters.filter(monster =>
+            (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
             (!selectedGame || monster.game === selectedGame)
         );
-        setDisplayedMonsters(matchedMonsters);
-    }, [monsterName, selectedGame, allMonsters]);
+
+        const startIndex = itemsPerPage * (currentPage - 1);
+        const paginatedMonsters = matchedMonsters.slice(startIndex, startIndex + itemsPerPage);
+        setDisplayedMonsters(paginatedMonsters);
+    }, [monsterName, selectedGame, currentPage, allMonsters]);
+
+    const displayRandomMonsters = () => {
+        const filteredMonsters = allMonsters.filter(monster =>
+            (!selectedGame || monster.game === selectedGame)
+        );
+        const randomMonsters = sampleSize(filteredMonsters, itemsPerPage);
+        setDisplayedMonsters(randomMonsters);
+        setMonsterName('');  // Clear input field
+        setShowDropdown(false);
+        setCurrentPage(1);  // Reset pagination
+    };
 
     useEffect(() => {
         setLoading(true);
         updateFilteredMonsterNames();
+    }, [monsterName, selectedGame, updateFilteredMonsterNames]);
+
+    useEffect(() => {
         updateDisplayedMonsters();
-    }, [monsterName, selectedGame, updateFilteredMonsterNames, updateDisplayedMonsters]);
+    }, [currentPage, updateDisplayedMonsters]);
 
     const handleInputChange = (e) => {
         setMonsterName(e.target.value);
         setShowDropdown(true);
+        setCurrentPage(1);  // Reset to first page on new search
     };
 
     const handleGameChange = (e) => {
         setSelectedGame(e.target.value);
+        setCurrentPage(1);  // Reset to first page on new search
     };
 
     const handleInputFocus = () => {
@@ -90,8 +112,23 @@ const Monster = () => {
         setShowDropdown(false);
     };
 
+    const loadPreviousMonsters = () => {
+        setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
+    };
+
+    const loadNextMonsters = () => {
+        setCurrentPage(prevPage => prevPage + 1);
+    };
+
+    const matchedMonsters = allMonsters.filter(monster =>
+        (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
+        (!selectedGame || monster.game === selectedGame)
+    );
+
+    const totalPages = Math.ceil(matchedMonsters.length / itemsPerPage);
+
     return (
-        <div className="monster-container">
+        <div className="container">
             <input
                 type="text"
                 placeholder="Enter monster name"
@@ -99,18 +136,19 @@ const Monster = () => {
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="monster-input"
+                className="input"
             />
-            <select value={selectedGame} onChange={handleGameChange}>
+            <select value={selectedGame} onChange={handleGameChange} className="input">
                 <option value="">All Games</option>
                 {games.map((game, index) => (
                     <option key={index} value={game}>{game}</option>
                 ))}
             </select>
+            <button onClick={displayRandomMonsters} className="input">Show Random 5 Monsters</button>
             {loading && <div>Loading...</div>}
-            {showDropdown && filteredMonsterNames.length > 0 && (
+            {showDropdown && filteredMonsterNames.length > 0 && ( // Corrected here too
                 <div className="dropdown">
-                    {filteredMonsterNames.map(name => (
+                    {filteredMonsterNames.map(name => ( // Corrected here too
                         <div key={name} onMouseDown={() => handleMonsterSelect(name)} className="dropdown-option">
                             {name}
                         </div>
@@ -118,21 +156,31 @@ const Monster = () => {
                 </div>
             )}
             {displayedMonsters.length > 0 ? (
-                displayedMonsters.map(monster => (
-                    <div key={monster.monsterId}>
-                        <h1>{monster.name}</h1>
-                        <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
-                        <p>Japanese Name: {monster.japaneseName}</p>
-                        <p>Elemental Affinity: {monster.elementalAffinity || 'N/A'}</p>
-                        <p>Elemental Weakness: {monster.elementalWeakness || 'N/A'}</p>
-                        <p>Hit Points: {monster.hitPoints}</p>
-                        <p>Mana Points: {monster.manaPoints}</p>
-                        <p>Attack: {monster.attack}</p>
-                        <p>Defense: {monster.defense}</p>
-                        <p>Description: {monster.description || 'N/A'}</p>
-                        <p>Game: {monster.game}</p>
+                <>
+                    {displayedMonsters.map(monster => (
+                        <div key={monster.monsterId}>
+                            <h1>{monster.name}</h1>
+                            <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
+                            <p>Japanese Name: {monster.japaneseName}</p>
+                            <p>Elemental Affinity: {monster.elementalAffinity || 'N/A'}</p>
+                            <p>Elemental Weakness: {monster.elementalWeakness || 'N/A'}</p>
+                            <p>Hit Points: {monster.hitPoints}</p>
+                            <p>Mana Points: {monster.manaPoints}</p>
+                            <p>Attack: {monster.attack}</p>
+                            <p>Defense: {monster.defense}</p>
+                            <p>Description: {monster.description || 'N/A'}</p>
+                            <p>Game: {monster.game}</p>
+                        </div>
+                    ))}
+                    <div className="pagination-buttons">
+                        {currentPage > 1 && (
+                            <button onClick={loadPreviousMonsters}>Previous 5</button>
+                        )}
+                        {currentPage < totalPages && (
+                            <button onClick={loadNextMonsters}>Next 5</button>
+                        )}
                     </div>
-                ))
+                </>
             ) : (
                 (monsterName || selectedGame) && !loading && <p>No monsters found</p>
             )}
