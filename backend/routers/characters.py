@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-import httpx
-from database import get_db
 import crud
+from database import get_db
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from uuid import UUID
 import re
 
@@ -20,13 +19,13 @@ class Character(BaseModel):
     id: UUID
     name: str
     japaneseName: Optional[str] = None
-    age: str
-    gender: str
-    race: str
-    job: str
-    height: str
-    weight: str
-    origin: str
+    age: Optional[str] = None
+    gender: Optional[str] = None
+    race: Optional[str] = None
+    job: Optional[str] = None
+    height: Optional[str] = None
+    weight: Optional[str] = None
+    origin: Optional[str] = None
     description: Optional[str] = None
     pictures: List[Picture] = []
     stats: List[dict] = []  
@@ -48,11 +47,6 @@ def is_roman_numeral(s: str) -> bool:
     return re.fullmatch(r'[IVXLCDM]+', s) is not None
 
 def extract_parts(game: str):
-    """
-    Extract primary and secondary parts from the game title.
-    Primary - main roman numeral part
-    Secondary - numeral part after hyphen if exists, else None
-    """
     main_part = game.rsplit(" ", 1)[-1]
     if '-' in main_part:
         primary, secondary = main_part.split('-')
@@ -69,21 +63,14 @@ def sort_roman_numerals(games: List[str]) -> List[str]:
         elif is_roman_numeral(primary):
             primary_val = roman_to_int(primary)
         else:
-            # For non-numeric entries, sort last
-            primary_val = float('inf')  
+            primary_val = float('inf')
 
-        # Set secondary_val to 0 if no secondary part exists, making original versions come first
         secondary_val = int(secondary) if secondary and secondary.isdigit() else 0
-        
         return (primary_val, secondary_val, game)
 
-    # Sort by primary numerics, then by secondary (tie breaker), then alphabetically for non-numerics
     return sorted(games, key=sort_key)
 
-
-
-
-@router.get("/stored-characters")
+@router.get("/stored-characters", response_model=List[Character])
 def read_characters(db: Session = Depends(get_db)):
     return crud.get_characters(db)
 

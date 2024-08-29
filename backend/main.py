@@ -3,8 +3,8 @@ from routers import characters, monsters, games
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from database import SessionLocal, engine
-from models import Base, CharacterSQL 
+from database import SessionLocal
+from models import CharacterSQL
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,7 +22,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
