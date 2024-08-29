@@ -12,16 +12,16 @@ router = APIRouter()
 class Monster(BaseModel):
     monsterId: UUID
     name: str
-    japaneseName: Optional[str]
+    japaneseName: Optional[str] = None
     elementalAffinity: Optional[str] = None
-    elementalWeakness: str
-    hitPoints: int
-    manaPoints: int
-    attack: int
-    defense: int
-    picture: str
-    description: str
-    game: str
+    elementalWeakness: Optional[str] = None
+    hitPoints: Optional[int] = None
+    manaPoints: Optional[int] = None
+    attack: Optional[int] = None
+    defense: Optional[int] = None
+    picture: Optional[str] = None
+    description: Optional[str] = None
+    game: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -38,9 +38,7 @@ def sort_zero_padded_numbers(games: List[str]) -> List[str]:
     # First sort numerically, then alphabetically for tie-breakers
     return sorted(games, key=lambda x: (extract_main_part(x), x))
 
-
-
-@router.get("/stored-monsters")
+@router.get("/stored-monsters", response_model=List[Monster])
 def read_monsters(db: Session = Depends(get_db)):
     return crud.get_monsters(db)
 
@@ -48,4 +46,4 @@ def read_monsters(db: Session = Depends(get_db)):
 def get_monster_games(db: Session = Depends(get_db)):
     monsters = crud.get_monsters(db)
     unique_games = {monster.game for monster in monsters if monster.game}
-    return sort_zero_padded_numbers(list(unique_games)) 
+    return sort_zero_padded_numbers(list(unique_games))
