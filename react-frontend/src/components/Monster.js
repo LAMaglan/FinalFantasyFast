@@ -12,6 +12,8 @@ const Monster = () => {
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [games, setGames] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         fetchAllMonsters();
@@ -22,8 +24,7 @@ const Monster = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-monsters`);
             setAllMonsters(response.data);
-            // Initialize displayed monsters with the first 5 monsters
-            setDisplayedMonsters(response.data.slice(0, 5));
+            setDisplayedMonsters(response.data.slice(0, itemsPerPage));  // Initialize displayed monsters with first page
         } catch (error) {
             console.error("There was an error fetching all monsters!", error);
         }
@@ -61,27 +62,30 @@ const Monster = () => {
             (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
             (!selectedGame || monster.game === selectedGame)
         );
-        if (monsterName || selectedGame) {
-            setDisplayedMonsters(matchedMonsters);
-        } else {
-            // Show the first 5 monsters by default if there is no filter
-            setDisplayedMonsters(allMonsters.slice(0, 5));
-        }
-    }, [monsterName, selectedGame, allMonsters]);
+
+        const startIndex = itemsPerPage * (currentPage - 1);
+        const paginatedMonsters = matchedMonsters.slice(startIndex, startIndex + itemsPerPage);
+        setDisplayedMonsters(paginatedMonsters);
+    }, [monsterName, selectedGame, currentPage, allMonsters]);
 
     useEffect(() => {
         setLoading(true);
         updateFilteredMonsterNames();
+    }, [monsterName, selectedGame, updateFilteredMonsterNames]);
+
+    useEffect(() => {
         updateDisplayedMonsters();
-    }, [monsterName, selectedGame, updateFilteredMonsterNames, updateDisplayedMonsters]);
+    }, [currentPage, updateDisplayedMonsters]);
 
     const handleInputChange = (e) => {
         setMonsterName(e.target.value);
         setShowDropdown(true);
+        setCurrentPage(1);  // Reset to first page on new search
     };
 
     const handleGameChange = (e) => {
         setSelectedGame(e.target.value);
+        setCurrentPage(1);  // Reset to first page on new search
     };
 
     const handleInputFocus = () => {
@@ -94,8 +98,23 @@ const Monster = () => {
 
     const handleMonsterSelect = (name) => {
         setMonsterName(name);
-        setShowDropdown(false);
+        setShowDropdown(false);  // Corrected this line
     };
+
+    const loadPreviousMonsters = () => {
+        setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
+    };
+
+    const loadNextMonsters = () => {
+        setCurrentPage(prevPage => prevPage + 1);
+    };
+
+    const matchedMonsters = allMonsters.filter(monster =>
+        (!monsterName || monster.name.toLowerCase().includes(monsterName.toLowerCase())) &&
+        (!selectedGame || monster.game === selectedGame)
+    );
+
+    const totalPages = Math.ceil(matchedMonsters.length / itemsPerPage);
 
     return (
         <div className="monster-container">
@@ -125,21 +144,31 @@ const Monster = () => {
                 </div>
             )}
             {displayedMonsters.length > 0 ? (
-                displayedMonsters.map(monster => (
-                    <div key={monster.monsterId}>
-                        <h1>{monster.name}</h1>
-                        <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
-                        <p>Japanese Name: {monster.japaneseName}</p>
-                        <p>Elemental Affinity: {monster.elementalAffinity || 'N/A'}</p>
-                        <p>Elemental Weakness: {monster.elementalWeakness || 'N/A'}</p>
-                        <p>Hit Points: {monster.hitPoints}</p>
-                        <p>Mana Points: {monster.manaPoints}</p>
-                        <p>Attack: {monster.attack}</p>
-                        <p>Defense: {monster.defense}</p>
-                        <p>Description: {monster.description || 'N/A'}</p>
-                        <p>Game: {monster.game}</p>
+                <>
+                    {displayedMonsters.map(monster => (
+                        <div key={monster.monsterId}>
+                            <h1>{monster.name}</h1>
+                            <img src={monster.picture} alt={monster.name} style={{ maxWidth: '200px', maxHeight: '200px' }} />
+                            <p>Japanese Name: {monster.japaneseName}</p>
+                            <p>Elemental Affinity: {monster.elementalAffinity || 'N/A'}</p>
+                            <p>Elemental Weakness: {monster.elementalWeakness || 'N/A'}</p>
+                            <p>Hit Points: {monster.hitPoints}</p>
+                            <p>Mana Points: {monster.manaPoints}</p>
+                            <p>Attack: {monster.attack}</p>
+                            <p>Defense: {monster.defense}</p>
+                            <p>Description: {monster.description || 'N/A'}</p>
+                            <p>Game: {monster.game}</p>
+                        </div>
+                    ))}
+                    <div className="pagination-buttons">
+                        {currentPage > 1 && (
+                            <button onClick={loadPreviousMonsters}>Previous 5</button>
+                        )}
+                        {currentPage < totalPages && (
+                            <button onClick={loadNextMonsters}>Next 5</button>
+                        )}
                     </div>
-                ))
+                </>
             ) : (
                 (monsterName || selectedGame) && !loading && <p>No monsters found</p>
             )}
