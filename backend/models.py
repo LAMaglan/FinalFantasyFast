@@ -27,16 +27,16 @@ class MonsterSQL(Base):
     
     monsterId = Column(UUID(as_uuid=True), primary_key=True, index=True)
     name = Column(String, index=True)
-    japaneseName = Column(String)
-    elementalAffinity = Column(String)
-    elementalWeakness = Column(String)
-    hitPoints = Column(Integer)
-    manaPoints = Column(Integer)
-    attack = Column(Integer)
-    defense = Column(Integer)
-    picture = Column(String)
-    description = Column(Text)
-    game = Column(String)
+    japaneseName = Column(String, nullable=True)
+    elementalAffinity = Column(String, nullable=True)
+    elementalWeakness = Column(String, nullable=True)
+    hitPoints = Column(Integer, nullable=True)
+    manaPoints = Column(Integer, nullable=True)
+    attack = Column(Integer, nullable=True)
+    defense = Column(Integer, nullable=True)
+    picture = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    game = Column(String, nullable=True)
 
 class GameSQL(Base):
     __tablename__ = "games"
