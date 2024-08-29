@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import config from '../config';
-import { debounce } from 'lodash';
+import { debounce, sampleSize } from 'lodash';
 
 const Character = () => {
     const [allCharacters, setAllCharacters] = useState([]);
@@ -12,7 +12,6 @@ const Character = () => {
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [origins, setOrigins] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
     useEffect(() => {
@@ -24,8 +23,7 @@ const Character = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-characters`);
             setAllCharacters(response.data);
-            // Initialize displayed characters with the first page characters
-            setDisplayedCharacters(response.data.slice(0, itemsPerPage));
+            setDisplayedCharacters(sampleSize(response.data, itemsPerPage));
         } catch (error) {
             console.error("There was an error fetching all characters!", error);
         }
@@ -51,24 +49,17 @@ const Character = () => {
                     uniqueNames.add(character.name);
                 }
             });
+
             setFilteredCharacterNames(Array.from(uniqueNames));
             setLoading(false);
         }, 300),
         [characterName, selectedOrigin, allCharacters]
     );
 
-    const updateDisplayedCharacters = useCallback(() => {
-        const matchedCharacters = allCharacters.filter(character =>
-            (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
-            (!selectedOrigin || character.origin === selectedOrigin)
-        );
-
-        // Slice based on pagination
-        const startIndex = itemsPerPage * (currentPage - 1);
-        const paginatedCharacters = matchedCharacters.slice(startIndex, startIndex + itemsPerPage);
-
-        setDisplayedCharacters(paginatedCharacters);
-    }, [characterName, selectedOrigin, currentPage, allCharacters]);
+    const showRandomCharacters = () => {
+        setCharacterName('');
+        setDisplayedCharacters(sampleSize(allCharacters, itemsPerPage));
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -76,18 +67,24 @@ const Character = () => {
     }, [characterName, selectedOrigin, updateFilteredCharacterNames]);
 
     useEffect(() => {
-        updateDisplayedCharacters();
-    }, [currentPage, updateDisplayedCharacters]);
+        if (!characterName) {
+            showRandomCharacters();
+        } else {
+            const filtered = allCharacters.filter(character =>
+                (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
+                (!selectedOrigin || character.origin === selectedOrigin)
+            );
+            setDisplayedCharacters(filtered.slice(0, itemsPerPage));
+        }
+    }, [characterName, selectedOrigin]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
         setShowDropdown(true);
-        setCurrentPage(1); // Reset to first page on new search
     };
 
     const handleOriginChange = (e) => {
         setSelectedOrigin(e.target.value);
-        setCurrentPage(1); // Reset to first page on new search
     };
 
     const handleInputFocus = () => {
@@ -103,23 +100,8 @@ const Character = () => {
         setShowDropdown(false);
     };
 
-    const loadPreviousCharacters = () => {
-        setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
-    };
-
-    const loadNextCharacters = () => {
-        setCurrentPage(prevPage => prevPage + 1);
-    };
-
-    const matchedCharacters = allCharacters.filter(character =>
-        (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
-        (!selectedOrigin || character.origin === selectedOrigin)
-    );
-
-    const totalPages = Math.ceil(matchedCharacters.length / itemsPerPage);
-
     return (
-        <div className="character-container">
+        <div className="container">
             <input
                 type="text"
                 placeholder="Enter character name"
@@ -127,14 +109,15 @@ const Character = () => {
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
                 onBlur={handleInputBlur}
-                className="character-input"
+                className="input"
             />
-            <select value={selectedOrigin} onChange={handleOriginChange}>
+            <select value={selectedOrigin} onChange={handleOriginChange} className="input">
                 <option value="">All Origins</option>
                 {origins.map(origin => (
                     <option key={origin} value={origin}>{origin}</option>
                 ))}
             </select>
+            <button onClick={showRandomCharacters} className="input">Show Random 5 Characters</button>
             {loading && <div>Loading...</div>}
             {showDropdown && filteredCharacterNames.length > 0 && (
                 <div className="dropdown">
@@ -168,14 +151,6 @@ const Character = () => {
                             <p>Description: {character.description || 'N/A'}</p>
                         </div>
                     ))}
-                    <div className="pagination-buttons">
-                        {currentPage > 1 && (
-                            <button onClick={loadPreviousCharacters}>Previous 5</button>
-                        )}
-                        {currentPage < totalPages && (
-                            <button onClick={loadNextCharacters}>Next 5</button>
-                        )}
-                    </div>
                 </>
             ) : (
                 (characterName || selectedOrigin) && !loading && <p>No characters found</p>
