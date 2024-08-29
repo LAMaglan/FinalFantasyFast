@@ -23,7 +23,7 @@ const Character = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-characters`);
             setAllCharacters(response.data);
-            setDisplayedCharacters(sampleSize(response.data, itemsPerPage));
+            showRandomCharacters(response.data);
         } catch (error) {
             console.error("There was an error fetching all characters!", error);
         }
@@ -56,10 +56,15 @@ const Character = () => {
         [characterName, selectedOrigin, allCharacters]
     );
 
-    const showRandomCharacters = () => {
+    const showRandomCharacters = useCallback((characters = allCharacters) => {
+        const filteredCharacters = characters.filter(character =>
+            (!characterName || character.name.toLowerCase().includes(characterName.toLowerCase())) &&
+            (!selectedOrigin || character.origin === selectedOrigin)
+        );
+        setDisplayedCharacters(sampleSize(filteredCharacters, itemsPerPage));
         setCharacterName('');
-        setDisplayedCharacters(sampleSize(allCharacters, itemsPerPage));
-    };
+        setShowDropdown(false);
+    }, [allCharacters, characterName, selectedOrigin]);
 
     useEffect(() => {
         setLoading(true);
@@ -76,7 +81,7 @@ const Character = () => {
             );
             setDisplayedCharacters(filtered.slice(0, itemsPerPage));
         }
-    }, [characterName, selectedOrigin]);
+    }, [allCharacters, characterName, selectedOrigin, showRandomCharacters]);
 
     const handleInputChange = (e) => {
         setCharacterName(e.target.value);
@@ -117,7 +122,7 @@ const Character = () => {
                     <option key={origin} value={origin}>{origin}</option>
                 ))}
             </select>
-            <button onClick={showRandomCharacters} className="input">Show Random 5 Characters</button>
+            <button onClick={() => showRandomCharacters()} className="input">Show Random 5 Characters</button>
             {loading && <div>Loading...</div>}
             {showDropdown && filteredCharacterNames.length > 0 && (
                 <div className="dropdown">

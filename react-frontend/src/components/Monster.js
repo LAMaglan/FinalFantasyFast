@@ -5,7 +5,7 @@ import { debounce, sampleSize } from 'lodash';
 
 const Monster = () => {
     const [allMonsters, setAllMonsters] = useState([]);
-    const [filteredMonsterNames, setFilteredMonsterNames] = useState([]);
+    const [filteredMonsterNames, setFilteredMonsterNames] = useState([]); // Corrected setter name here
     const [displayedMonsters, setDisplayedMonsters] = useState([]);
     const [monsterName, setMonsterName] = useState('');
     const [selectedGame, setSelectedGame] = useState('');
@@ -24,7 +24,7 @@ const Monster = () => {
         try {
             const response = await axios.get(`${config.API_URL}/stored-monsters`);
             setAllMonsters(response.data);
-            setDisplayedMonsters(response.data.slice(0, itemsPerPage));  // Initialize displayed monsters with first page
+            setDisplayedMonsters(sampleSize(response.data, itemsPerPage));  // Initialize with random monsters
         } catch (error) {
             console.error("There was an error fetching all monsters!", error);
         }
@@ -51,7 +51,7 @@ const Monster = () => {
                     uniqueNames.add(monster.name);
                 }
             });
-            setFilteredMonsterNames(Array.from(uniqueNames));
+            setFilteredMonsterNames(Array.from(uniqueNames)); // Corrected setter name here
             setLoading(false);
         }, 300),
         [monsterName, selectedGame, allMonsters]
@@ -69,8 +69,13 @@ const Monster = () => {
     }, [monsterName, selectedGame, currentPage, allMonsters]);
 
     const displayRandomMonsters = () => {
-        const randomMonsters = sampleSize(allMonsters, itemsPerPage);
+        const filteredMonsters = allMonsters.filter(monster =>
+            (!selectedGame || monster.game === selectedGame)
+        );
+        const randomMonsters = sampleSize(filteredMonsters, itemsPerPage);
         setDisplayedMonsters(randomMonsters);
+        setMonsterName('');  // Clear input field
+        setShowDropdown(false);
         setCurrentPage(1);  // Reset pagination
     };
 
@@ -104,7 +109,7 @@ const Monster = () => {
 
     const handleMonsterSelect = (name) => {
         setMonsterName(name);
-        setShowDropdown(false);  // Corrected this line
+        setShowDropdown(false);
     };
 
     const loadPreviousMonsters = () => {
@@ -141,9 +146,9 @@ const Monster = () => {
             </select>
             <button onClick={displayRandomMonsters} className="input">Show Random 5 Monsters</button>
             {loading && <div>Loading...</div>}
-            {showDropdown && filteredMonsterNames.length > 0 && (
+            {showDropdown && filteredMonsterNames.length > 0 && ( // Corrected here too
                 <div className="dropdown">
-                    {filteredMonsterNames.map(name => (
+                    {filteredMonsterNames.map(name => ( // Corrected here too
                         <div key={name} onMouseDown={() => handleMonsterSelect(name)} className="dropdown-option">
                             {name}
                         </div>
