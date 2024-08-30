@@ -2,6 +2,15 @@ version: '3.8'
 
 services:
 
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_HOST_AUTH_METHOD: trust # no password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   backend:
     build:
       context: ./backend
@@ -11,12 +20,14 @@ services:
       #- "8000"
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./sql_app.db
+      - DATABASE_URL=postgresql://user@postgres/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/health"]
       interval: 10s
       timeout: 10s
       retries: 3
+    depends_on:
+      - postgres
     # optionally map database to localhost
     #volumes:
     #  - ./data/backend:/app  # Ensure this maps to a correct path on your host
@@ -47,4 +58,5 @@ services:
       - frontend-build:/usr/share/nginx/html
 
 volumes:
+  postgres_data:
   frontend-build:
