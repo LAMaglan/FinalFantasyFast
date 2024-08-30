@@ -54,8 +54,8 @@ http://0.0.0.0:8000/docs/
 if using the docker-compose approach. 
 
 The `characters` and `monsters` routers fetches data from the above link,
-and stores them in a sqlite3 database (sql_app.db).
-Note: the use of (sqlite) database is somewhat superflous, there are no POST endpoints in the backend API.
+and stores them in a postgres database.
+Note: the use of (postgres) database is somewhat superflous, there are no POST endpoints in the backend API.
 
 The frontend is accessible through
 http://localhost:3000
