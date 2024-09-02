@@ -25,6 +25,11 @@ and/or larger data
 
 # Run without docker-compose
 
+Note: not so trivial to do with postgres. Switch back to sqlite. Last working version
+with sqlite:
+<br>
+https://github.com/LAMaglan/FinalFantasyFast/tree/8c592d633d37a16d3facbe26c92949ad50d0153a
+
 The backend (FastAPI) runs with poetry:
 
 ```bash
